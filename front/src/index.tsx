@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import 'antd/dist/antd.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import TrackerPage from './pages/Tracker';
 import reportWebVitals from './reportWebVitals';
 
