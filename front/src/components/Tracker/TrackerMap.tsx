@@ -1,8 +1,9 @@
-import { Feature, FeatureCollection, Geometry } from 'geojson';
+import { Feature, FeatureCollection } from 'geojson';
 import mapboxgl, { GeoJSONSource, LngLatLike, Map } from 'mapbox-gl';
 import React, { useEffect } from 'react';
 import { MAPGL_API } from '../../constants/api';
 import { IJob, INode } from '../../interfaces/main';
+import { getMatch } from '../../services/Map';
 
 mapboxgl.accessToken = MAPGL_API;
 
@@ -39,6 +40,13 @@ const TrackerMap: React.FC<MapProp> = ({ jobs, nodes }) => {
           clusterMaxZoom: 12,
           clusterRadius: 20,
         });
+        map.addSource('routes', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: [],
+          },
+        });
         map.addLayer({
           id: 'clusters',
           type: 'circle',
@@ -65,6 +73,17 @@ const TrackerMap: React.FC<MapProp> = ({ jobs, nodes }) => {
           type: 'circle',
           source: 'nodes',
           filter: ['!', ['has', 'point_count']],
+          paint: {
+            'circle-color': '#11b4da',
+            'circle-radius': 4,
+            'circle-stroke-width': 1,
+          },
+        });
+
+        map.addLayer({
+          id: 'driver-layer',
+          type: 'circle',
+          source: 'driver',
           paint: {
             'circle-color': '#11b4da',
             'circle-radius': 4,

@@ -1,7 +1,10 @@
+import { GeoJsonGeometryTypes } from 'geojson';
+
 export interface IJob extends IObject {
   driver: IDriver;
   date: Date;
   orders: IOrder[];
+  route?: GeoJsonGeometryTypes;
 }
 
 export interface IOrder extends IObject {
