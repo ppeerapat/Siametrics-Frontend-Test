@@ -1,11 +1,10 @@
-import { Collapse, Layout, Timeline } from 'antd';
+import { Collapse, Layout, message } from 'antd';
 import Search from 'antd/lib/input/Search';
-import { LngLatLike } from 'mapbox-gl';
 import React, { useEffect } from 'react';
-import { IDriver, INode, IJob } from '../../interfaces/main';
-import { getMatch } from '../../services/Map';
+import { IDriver, IJob, INodes, IOrder, TargetOrder } from '../../interfaces/main';
 import { getJobs, getJobsByDriver } from '../../services/TrackerData/jobs';
 import { getNodes } from '../../services/TrackerData/nodes';
+import TimelineCard, { PanelHeader } from './TimelineCard';
 import JobCard from './JobCard';
 import Map from './TrackerMap';
 const { Content, Sider } = Layout;
@@ -16,23 +15,29 @@ const { Panel } = Collapse;
 //   current?: number;
 //   nodes: INode[];
 // }
-interface Checker extends IJob {
+interface Job extends IJob {
   isChecked?: boolean;
 }
+
 const TrackerWindow: React.FC = () => {
   const [drivers, setDrivers] = React.useState<IDriver[]>([]);
-  const [nodes, setNodes] = React.useState<INode[]>([]);
-  const [jobs, setJobs] = React.useState<Checker[]>([]);
-  const [selectedJobs, setSelectedJobs] = React.useState<Checker[]>([]);
+  const [nodes, setNodes] = React.useState<INodes>({});
+  const [jobs, setJobs] = React.useState<Job[]>([]);
 
+  const [selectedJobs, setSelectedJobs] = React.useState<Job[]>([]);
+  const [selectedOrder, setSelectedOrder] = React.useState<TargetOrder>();
   useEffect(() => {
     fetchNodes();
     fetchJobs();
   }, []);
 
   const fetchJobs = async () => {
-    const res = await getJobs();
-    setJobs(res);
+    try {
+      const res = await getJobs();
+      setJobs(res);
+    } catch (e) {
+      message.error('There is an error loading the data');
+    }
   };
 
   const fetchNodes = async () => {
@@ -47,23 +52,43 @@ const TrackerWindow: React.FC = () => {
 
   React.useEffect(() => {
     setSelectedJobs(jobs.filter((e) => e.isChecked == true));
-    console.log(jobs);
   }, [jobs]);
 
-  const loadRoute = (e: Checker, index: number) => {
-    const lnglat: LngLatLike[] = [];
-    for (let i = 0; i < e.orders.length; i++) {
-      const order = e.orders[i];
-      const node = nodes.find((f) => f.id == order.node);
-      if (node) lnglat.push([node.lng, node.lat]);
-    }
-    getMatch(lnglat).then((r) => {
-      const temp = [...jobs];
-      e.route = r.routes[0].geometry;
-      temp[index] = e;
-      setJobs(temp);
-    });
+  // const loadRoute = (e: Job, index: number) => {
+  //   const lnglat: LngLatLike[] = [];
+  //   for (let i = 0; i < e.orders.length; i++) {
+  //     const order = e.orders[i];
+  //     const node = nodes[order.node];
+  //     if (node) lnglat.push([node.lng, node.lat]);
+  //   }
+  //   getMatch(lnglat).then((r) => {
+  //     const temp = [...jobs];
+  //     e.route = r.routes[0].geometry;
+  //     e.isChecked = !e.isChecked;
+  //     temp[index] = e;
+  //     setJobs(temp);
+  //   });
+  // };
+
+  const handleOrderChange = (job: IJob, order: IOrder) => {
+    const node = nodes[order.node];
+    const targetOrder = {
+      jobId: job.id,
+      driver: job.driver.name,
+      date: job.date,
+      nodeName: node.name,
+      lng: node.lng,
+      lat: node.lat,
+      ...order,
+    };
+    setSelectedOrder(targetOrder);
   };
+
+  React.useEffect(() => {
+    if (!selectedJobs.find((j) => j.id == selectedOrder?.jobId)) {
+      setSelectedOrder(undefined);
+    }
+  }, [selectedJobs]);
   return (
     <Layout className="layout" style={{ width: '90vw', margin: 'auto' }}>
       <Sider width="260px" theme="light" breakpoint="lg" collapsedWidth="0" style={{ padding: '10px' }}>
@@ -78,9 +103,6 @@ const TrackerWindow: React.FC = () => {
                   e.isChecked = !e.isChecked;
                   temp[i] = e;
                   setJobs(temp);
-                  if (!e.route) {
-                    loadRoute(e, i);
-                  }
                 }}
               >
                 <JobCard job={e} isActive={e.isChecked} />
@@ -89,26 +111,21 @@ const TrackerWindow: React.FC = () => {
           })}
         </div>
         <div style={{ margin: '10px 0', height: '450px', overflowY: 'scroll' }}>
-          <Collapse accordion>
+          <Collapse
+            accordion
+            onChange={(e) => {
+              const job = selectedJobs.find((j) => j.id == e);
+              if (job) {
+                handleOrderChange(job, job?.orders[0]);
+              } else {
+                setSelectedOrder(undefined);
+              }
+            }}
+          >
             {selectedJobs.map((e, i) => {
-              const total = e.orders.reduce((acc, v, i) => {
-                return (acc += v.numberOfItem);
-              }, 0);
               return (
-                <Panel key={i + e.id} header={e.driver.name + ' Total items: ' + total}>
-                  <p>Date: {e.date}</p>
-                  <Timeline>
-                    {e.orders.map((e, i) => {
-                      return (
-                        <Timeline.Item key={i + e.toString()}>
-                          <p>
-                            {e.time} Node: {e.node}
-                          </p>{' '}
-                          <p>No. of Items: {e.numberOfItem}</p>
-                        </Timeline.Item>
-                      );
-                    })}
-                  </Timeline>
+                <Panel key={e.id} header={<PanelHeader job={e} />}>
+                  <TimelineCard job={e} onChange={handleOrderChange} nodes={nodes} />
                 </Panel>
               );
             })}
@@ -116,7 +133,7 @@ const TrackerWindow: React.FC = () => {
         </div>
       </Sider>
       <Content>
-        <Map jobs={selectedJobs} nodes={nodes} />
+        <Map jobs={selectedJobs ?? undefined} nodes={nodes} selectedOrder={selectedOrder} />
       </Content>
     </Layout>
   );
