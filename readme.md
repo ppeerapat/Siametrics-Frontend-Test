@@ -1,3 +1,6 @@
+
+![image](https://user-images.githubusercontent.com/43128813/117084834-6b1ef500-ad72-11eb-9d2f-e8b82c43c754.png)
+
 Make sure to run both backend and frontend
 
 ### Backend
@@ -8,7 +11,7 @@ Make sure to run both backend and frontend
 npm install -g json-server
 ```
 
-3. Start a backend server
+2. Start a backend server
 
 ```
 yarn start
