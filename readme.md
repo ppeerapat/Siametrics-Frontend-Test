@@ -8,7 +8,7 @@ Make sure to run both backend and frontend
 1. Installation
 
 ```
-npm install -g json-server
+yarn install
 ```
 
 2. Start a backend server
@@ -32,7 +32,7 @@ json-server --watch db.json
 yarn install
 ```
 
-3. Start a frontend server
+3. Start a frontend server as development
 
 ```
 yarn start
@@ -40,3 +40,9 @@ yarn start
 
 4. Head to
    `http://localhost:3030/
+  
+5. For testing 
+
+```
+yarn test
+```
