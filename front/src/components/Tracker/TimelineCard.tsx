@@ -41,22 +41,36 @@ const TimelineCard: React.FC<Prop> = ({ job, nodes, onChange }) => {
 
   return (
     <>
-      <p>Date: {job.date}</p>
-      <p>
-        From {job.orders[0].time} to {job.orders[job.orders.length - 1].time}
-      </p>
-      <p>
+      <div style={{ display: 'flex' }}>
+        Date:{' '}
+        <p data-testid="job-date" style={{ margin: '0 5px' }}>
+          {job.date}
+        </p>
+      </div>
+      <div style={{ display: 'flex' }}>
+        From{' '}
+        <p data-testid="job-fromtime" style={{ margin: '0 5px' }}>
+          {job.orders[0].time}
+        </p>{' '}
+        to{' '}
+        <p data-testid="job-totime" style={{ margin: '0 5px' }}>
+          {job.orders[job.orders.length - 1].time}
+        </p>
+      </div>
+      <div style={{ display: 'flex' }}>
         Total:{' '}
-        {totalTime
-          .map((e) =>
-            e.toLocaleString('en-US', {
-              minimumIntegerDigits: 2,
-            })
-          )
-          .join('hrs ')}
-        mins
-      </p>
-      <Timeline>
+        <p data-testid="job-totaltime" style={{ margin: '0 5px' }}>
+          {totalTime
+            .map((e) =>
+              e.toLocaleString('en-US', {
+                minimumIntegerDigits: 2,
+              })
+            )
+            .join('hrs ')}
+          mins
+        </p>
+      </div>
+      <Timeline data-testid="job-orders" style={{ marginTop: '10px' }}>
         {job.orders.map((e, i) => {
           return (
             <Timeline.Item key={i + e.toString()}>

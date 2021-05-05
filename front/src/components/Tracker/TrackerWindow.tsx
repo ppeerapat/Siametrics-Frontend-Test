@@ -1,7 +1,7 @@
 import { Collapse, Layout, message } from 'antd';
 import Search from 'antd/lib/input/Search';
 import React, { useEffect } from 'react';
-import { IDriver, IJob, INodes, IOrder, TargetOrder } from '../../interfaces/main';
+import { IJob, INodes, IOrder, TargetOrder } from '../../interfaces/main';
 import { getJobs, getJobsByDriver } from '../../services/TrackerData/jobs';
 import { getNodes } from '../../services/TrackerData/nodes';
 import TimelineCard, { PanelHeader } from './TimelineCard';
@@ -20,7 +20,6 @@ interface Job extends IJob {
 }
 
 const TrackerWindow: React.FC = () => {
-  const [drivers, setDrivers] = React.useState<IDriver[]>([]);
   const [nodes, setNodes] = React.useState<INodes>({});
   const [jobs, setJobs] = React.useState<Job[]>([]);
 
